@@ -1,10 +1,10 @@
 package org.example.dispatch.config;
 
 import org.example.dispatch.event.EventBus;
+import org.example.dispatch.event.TaskEvent;
+import org.example.dispatch.event.subscribe.TaskSubSubscriber;
 import org.example.dispatch.queue.Queue;
 import org.example.dispatch.queue.TaskQueue;
-import org.example.dispatch.subscribe.Subscriber;
-import org.example.dispatch.subscribe.TaskSubSubscriber;
 import org.example.dispatch.task.facade.CompensateTaskFacadeImpl;
 import org.example.dispatch.task.facade.TaskFacade;
 import org.example.dispatch.task.intf.TaskServiceImpl;
@@ -38,8 +38,11 @@ public class DispatchConfiguration {
 
     // 同时加载application
     @Bean
-    public Subscriber subscriber() {
-        return new TaskSubSubscriber(dispatchProperties.getScheduledThreadSize());
+    public TaskSubSubscriber taskSubSubscriber() {
+        TaskSubSubscriber taskSubSubscriber = new TaskSubSubscriber(dispatchProperties.getScheduledThreadSize());
+        // todo 一次性加载所有订阅者???模式
+        EventBus.registry(TaskEvent.class, taskSubSubscriber);
+        return taskSubSubscriber;
     }
 
     @Bean
@@ -49,8 +52,4 @@ public class DispatchConfiguration {
             dispatchProperties.isFileEnable());
     }
 
-    @Bean
-    public EventBus eventBus() {
-        return new EventBus(subscriber());
-    }
 }

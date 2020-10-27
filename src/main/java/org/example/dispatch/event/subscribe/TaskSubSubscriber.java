@@ -1,4 +1,4 @@
-package org.example.dispatch.subscribe;
+package org.example.dispatch.event.subscribe;
 
 import java.util.Map;
 import java.util.Objects;
@@ -36,7 +36,7 @@ import com.google.common.util.concurrent.MoreExecutors;
  * @author tangaq
  * @date 2020/10/13
  */
-public class TaskSubSubscriber extends Subscriber implements ApplicationContextAware {
+public class TaskSubSubscriber extends AbstractSubscriber implements ApplicationContextAware {
     private static final Logger logger = LoggerFactory.getLogger(TaskSubSubscriber.class);
 
     private ListeningScheduledExecutorService listeningScheduledExecutorService;
@@ -51,8 +51,20 @@ public class TaskSubSubscriber extends Subscriber implements ApplicationContextA
     @Lazy
     private Queue queue;
 
+    @Autowired
+    private TaskSubSubscriber taskSubSubscriber;
+
+    public TaskSubSubscriber() {
+        init(400);
+    }
+
     public TaskSubSubscriber(int coreThreadSize) {
         this.init(coreThreadSize);
+    }
+
+    @Override
+    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
     }
 
     private void init(int coreThreadSize) {
@@ -152,11 +164,6 @@ public class TaskSubSubscriber extends Subscriber implements ApplicationContextA
                 .intValue() + 1, task.getExecNum());
         }
         MapDbUtil.deleteData(task.getUuid());
-    }
-
-    @Override
-    public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
-        this.applicationContext = applicationContext;
     }
 
     private class ScheduledCallable implements Callable<Object> {

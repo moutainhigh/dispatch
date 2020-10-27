@@ -9,22 +9,18 @@ import org.example.dispatch.event.TaskEvent;
 import org.example.dispatch.task.Task;
 import org.example.dispatch.utils.MapDbUtil;
 import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * @author tangaq
  * @date 2020/10/13
  */
 public class TaskQueue implements Queue, InitializingBean {
-    private PriorityBlockingQueue<Task> taskPriorityBlockingQueue;
+    private final PriorityBlockingQueue<Task> taskPriorityBlockingQueue;
     private boolean close = false;
 
     private boolean fileEnable;
 
     private String fileName;
-
-    @Autowired
-    private EventBus eventBus;
 
     public TaskQueue(int queueSize, String fileName) {
         this.taskPriorityBlockingQueue = new PriorityBlockingQueue<>(queueSize);
@@ -43,7 +39,7 @@ public class TaskQueue implements Queue, InitializingBean {
             List<Task> tasks = new ArrayList<>();
             tasks.add(task);
             MapDbUtil.addData(tasks);
-            eventBus.post(new TaskEvent(getFirst()));
+            EventBus.post(new TaskEvent(getFirst()));
         } else {
             throw new RuntimeException("关闭了队列，JVM 将关闭");
         }
@@ -66,7 +62,7 @@ public class TaskQueue implements Queue, InitializingBean {
     }
 
     @Override
-    public void afterPropertiesSet() throws Exception {
+    public void afterPropertiesSet() {
         MapDbUtil.setFileEnable(fileEnable);
         List<Task> tasks = MapDbUtil.fetchTask(fileName);
         for (Task task : tasks) {
